@@ -1,0 +1,74 @@
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace ConversionDeMonedas
+{
+    public partial class MainForm : Form
+    {
+        private Dictionary<string, double> tasasDeCambio = new Dictionary<string, double>()
+        {
+            {"USD", 1.0},
+            {"MXN", 17.08},
+            {"CAD", 1.38},
+            {"EUR", 0.94},
+            {"JPY", 154.60}
+        };
+
+        public MainForm()
+        {
+            InitializeComponent();
+            foreach (var moneda in tasasDeCambio.Keys)
+            {
+                cmbMonedaOrigen.Items.Add(moneda);
+            }
+        }
+
+        private void btnSeleccionarMonedas_Click(object sender, EventArgs e)
+        {
+            string monedaOrigen = cmbMonedaOrigen.SelectedItem.ToString();
+            List<string> monedasAConvertir = new List<string>();
+
+            foreach (var moneda in tasasDeCambio.Keys)
+            {
+                if (moneda != monedaOrigen)
+                {
+                    monedasAConvertir.Add(moneda);
+                }
+            }
+
+            SeleccionMonedasForm seleccionMonedasForm = new SeleccionMonedasForm(monedasAConvertir);
+            if (seleccionMonedasForm.ShowDialog() == DialogResult.OK)
+            {
+                panelConversiones.Controls.Clear();
+                foreach (var monedaSeleccionada in seleccionMonedasForm.MonedasSeleccionadas)
+                {
+                    Label lblMoneda = new Label();
+                    lblMoneda.Text = monedaSeleccionada + ":";
+                    lblMoneda.AutoSize = true;
+
+                    TextBox txtResultado = new TextBox();
+                    txtResultado.ReadOnly = true;
+                    txtResultado.Width = 100;
+
+                    double montoConvertido = ConvertirMoneda(monedaOrigen, monedaSeleccionada, double.Parse(txtMonto.Text));
+                    txtResultado.Text = montoConvertido.ToString("0.00");
+
+                    panelConversiones.Controls.Add(lblMoneda);
+                    panelConversiones.Controls.Add(txtResultado);
+                }
+            }
+        }
+
+        private double ConvertirMoneda(string monedaOrigen, string monedaDestino, double monto)
+        {
+            double tasaDeCambio = tasasDeCambio[monedaDestino] / tasasDeCambio[monedaOrigen];
+            return monto * tasaDeCambio;
+        }
+
+        private void btnLimpiar_Click(object sender, EventArgs e)
+        {
+            panelConversiones.Controls.Clear();
+        }
+    }
+}
